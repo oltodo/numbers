@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { makeStyles } from "@material-ui/core/styles";
 import shuffle from "lodash/shuffle";
 import range from "lodash/range";
 import writtenNumber from "written-number";
-import classes from "./App.module.css";
 
 const max = 500;
 
@@ -32,10 +32,24 @@ function say(text: string) {
   });
 }
 
+const useStyles = makeStyles((theme) => ({
+  root: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100vw",
+    height: "100vh",
+  },
+  number: {
+    fontFamily: '"Cursive standard"',
+  },
+}));
+
 function App() {
   const [mode, setMode] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [randNumbers, setRandNumbers] = useState(getRandNumber());
+  const classes = useStyles();
 
   useEffect(() => {
     const increment = async (event: KeyboardEvent) => {
