@@ -1,12 +1,22 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
-import "./index.css";
+import CssBaseline from "@material-ui/core/CssBaseline";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
 const theme = createMuiTheme({
+  typography: {
+    fontFamily: '"Source Sans Pro", "Helvetica", "Arial", sans-serif',
+    fontWeightMedium: 600,
+  },
   palette: {
+    background: {
+      default: "#0f2c62",
+    },
+    primary: {
+      main: "#44d7b6",
+    },
     type: "dark",
   },
 });
@@ -14,6 +24,7 @@ const theme = createMuiTheme({
 ReactDOM.render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <App />
     </ThemeProvider>
   </React.StrictMode>,

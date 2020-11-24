@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { useLocalStorage } from "react-use";
 import { makeStyles } from "@material-ui/core/styles";
 import shuffle from "lodash/shuffle";
-import range from "lodash/range";
+import _range from "lodash/range";
 import writtenNumber from "written-number";
+import Settings from "./Settings";
+import { Config } from "./types";
 
-const max = 500;
-
-function getRandNumber() {
-  return shuffle(range(0, max));
+function getRandNumber(range: [number, number]) {
+  return shuffle(_range(range[0], range[1] + 1));
 }
 
 let voices: SpeechSynthesisVoice[] | null = null;
@@ -34,6 +35,7 @@ function say(text: string) {
 
 const useStyles = makeStyles((theme) => ({
   root: {
+    position: "fixed",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -45,13 +47,27 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const defaultConfig: Config = {
+  range: [0, 20],
+};
+
 function App() {
+  const [config = defaultConfig, setConfig] = useLocalStorage<Config>(
+    "config",
+    defaultConfig
+  );
+
+  const [started, setStarted] = useState(false);
   const [mode, setMode] = useState(0);
-  const [currentIndex, setCurrentIndex] = useState(-1);
-  const [randNumbers, setRandNumbers] = useState(getRandNumber());
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [randNumbers, setRandNumbers] = useState(getRandNumber(config.range));
   const classes = useStyles();
 
   useEffect(() => {
+    if (!started) {
+      return () => {};
+    }
+
     const increment = async (event: KeyboardEvent) => {
       if (event.code !== "Space") {
         return;
@@ -62,7 +78,7 @@ function App() {
       }
 
       if (currentIndex + 1 === randNumbers.length) {
-        setRandNumbers(getRandNumber());
+        setRandNumbers(getRandNumber(config.range));
         setMode(mode === 1 ? 0 : 1);
         setCurrentIndex(0);
       } else {
@@ -75,11 +91,7 @@ function App() {
     return () => {
       window.removeEventListener("keydown", increment);
     };
-  }, [currentIndex, mode, randNumbers]);
-
-  if (currentIndex === -1) {
-    return null;
-  }
+  }, [config.range, currentIndex, mode, randNumbers, started]);
 
   const text =
     mode === 1
@@ -90,14 +102,24 @@ function App() {
 
   return (
     <div className={classes.root}>
-      <span
-        className={classes.number}
-        style={{
-          fontSize: fontSize + "vw",
-        }}
-      >
-        {text}
-      </span>
+      {started ? (
+        <span
+          className={classes.number}
+          style={{
+            fontSize: fontSize + "vw",
+          }}
+        >
+          {text}
+        </span>
+      ) : (
+        <Settings
+          range={config.range}
+          onRangeChanged={(range) => {
+            setConfig({ ...config, range });
+          }}
+          onSubmited={() => setStarted(true)}
+        />
+      )}
     </div>
   );
 }
