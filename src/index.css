@@ -1,0 +1,10 @@
+@font-face {
+  font-family: "Cursive Standard";
+  src: url("./fonts/CursiveStandardRegular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Cursive Standard";
+  font-weight: bold;
+  src: url("./fonts/CursiveStandardBold.ttf") format("truetype");
+}

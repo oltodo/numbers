@@ -5,9 +5,9 @@ import shuffle from "lodash/shuffle";
 import _range from "lodash/range";
 import writtenNumber from "written-number";
 import Settings from "./Settings";
-import { Config } from "./types";
+import { Config, Range } from "./types";
 
-function getRandNumber(range: [number, number]) {
+function generateNumbers(range: Range): number[] {
   return shuffle(_range(range[0], range[1] + 1));
 }
 
@@ -43,7 +43,7 @@ const useStyles = makeStyles((theme) => ({
     height: "100vh",
   },
   number: {
-    fontFamily: '"Cursive standard"',
+    fontFamily: '"Cursive Standard"',
   },
 }));
 
@@ -57,11 +57,18 @@ function App() {
     defaultConfig
   );
 
-  const [started, setStarted] = useState(false);
-  const [mode, setMode] = useState(0);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [randNumbers, setRandNumbers] = useState(getRandNumber(config.range));
+  const [started, setStarted] = useState<boolean>(false);
+  const [mode, setMode] = useState<0 | 1>(0);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [numbers, setNumbers] = useState<number[]>(
+    generateNumbers(config.range)
+  );
   const classes = useStyles();
+
+  const start = (): void => {
+    setNumbers(generateNumbers(config.range));
+    setStarted(true);
+  };
 
   useEffect(() => {
     if (!started) {
@@ -74,11 +81,11 @@ function App() {
       }
 
       if (currentIndex >= 0) {
-        await say(writtenNumber(randNumbers[currentIndex], { lang: "fr" }));
+        await say(writtenNumber(numbers[currentIndex], { lang: "fr" }));
       }
 
-      if (currentIndex + 1 === randNumbers.length) {
-        setRandNumbers(getRandNumber(config.range));
+      if (currentIndex + 1 === numbers.length) {
+        setNumbers(generateNumbers(config.range));
         setMode(mode === 1 ? 0 : 1);
         setCurrentIndex(0);
       } else {
@@ -91,12 +98,12 @@ function App() {
     return () => {
       window.removeEventListener("keydown", increment);
     };
-  }, [config.range, currentIndex, mode, randNumbers, started]);
+  }, [config.range, currentIndex, mode, numbers, started]);
 
   const text =
     mode === 1
-      ? randNumbers[currentIndex]
-      : writtenNumber(randNumbers[currentIndex], { lang: "fr" });
+      ? numbers[currentIndex]
+      : writtenNumber(numbers[currentIndex], { lang: "fr" });
 
   const fontSize = Math.min(8, 120 / text.length);
 
@@ -117,7 +124,7 @@ function App() {
           onRangeChanged={(range) => {
             setConfig({ ...config, range });
           }}
-          onSubmited={() => setStarted(true)}
+          onSubmited={start}
         />
       )}
     </div>

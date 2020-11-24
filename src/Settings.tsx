@@ -103,6 +103,11 @@ function Parameters({ range, onSubmited, onRangeChanged }: Props) {
                   </Grid>
                 </Grid>
               </div>
+              {/* <div className={classes.formSection}>
+                <div className={classes.formSectionTitle}>
+                  Durée de la session
+                </div>
+              </div> */}
             </Grid>
           </Grid>
           <Box marginTop={10} display="flex" justifyContent="center">
