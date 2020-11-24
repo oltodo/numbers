@@ -19,10 +19,10 @@ window.speechSynthesis.onvoiceschanged = () => {
     .filter((voice) => voice.lang === "fr-FR");
 };
 
-function say(text: string) {
+function say(text: number) {
   return new Promise((resolve) => {
     var msg = new SpeechSynthesisUtterance();
-    msg.text = text;
+    msg.text = text + "";
     msg.onend = resolve;
 
     if (voices) {
@@ -81,7 +81,7 @@ function App() {
       }
 
       if (currentIndex >= 0) {
-        await say(writtenNumber(numbers[currentIndex], { lang: "fr" }));
+        await say(numbers[currentIndex]);
       }
 
       if (currentIndex + 1 === numbers.length) {
