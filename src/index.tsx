@@ -4,6 +4,7 @@ import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
+import "./index.css";
 
 const theme = createMuiTheme({
   typography: {
