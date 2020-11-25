@@ -147,6 +147,12 @@ function App() {
   };
 
   useEffect(() => {
+    setConfig({ ...defaultConfig, ...config });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (!started) {
       return () => {};
     }
