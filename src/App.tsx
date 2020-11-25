@@ -6,6 +6,7 @@ import _range from "lodash/range";
 import writtenNumber from "written-number";
 import Settings from "./Settings";
 import { Config, Range } from "./types";
+import Toolbar from "./Toolbar";
 
 function generateNumbers(range: Range): number[] {
   return shuffle(_range(range[0], range[1] + 1));
@@ -127,6 +128,8 @@ function App() {
           onSubmited={start}
         />
       )}
+
+      <Toolbar range={config.range} hidden={!started} />
     </div>
   );
 }
