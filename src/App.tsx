@@ -2,15 +2,23 @@ import React, { useEffect, useState } from "react";
 import { useLocalStorage } from "react-use";
 import { makeStyles } from "@material-ui/core/styles";
 import shuffle from "lodash/shuffle";
-import _range from "lodash/range";
+import createRange from "lodash/range";
 import writtenNumber from "written-number";
 import Settings from "./Settings";
-import { Config, Range } from "./types";
 import Toolbar from "./Toolbar";
+import { Config, Range, SequencingMode } from "./types";
 
-function generateNumbers(range: Range): number[] {
-  return shuffle(_range(range[0], range[1] + 1));
+enum Version {
+  literal,
+  digital,
 }
+
+interface SerieItem {
+  number: number;
+  text: string;
+}
+
+type Serie = SerieItem[];
 
 let voices: SpeechSynthesisVoice[] | null = null;
 
@@ -34,6 +42,26 @@ function say(text: number) {
   });
 }
 
+const createSerie = (
+  range: Range,
+  random: boolean = true,
+  version: Version = Version.digital
+): Serie => {
+  let numbers: number[] = createRange(range[0], range[1] + 1);
+
+  if (random) {
+    numbers = shuffle(numbers);
+  }
+
+  return numbers.map((number) => ({
+    number,
+    text:
+      version === Version.digital
+        ? `${number}`
+        : writtenNumber(number, { lang: "fr" }),
+  }));
+};
+
 const useStyles = makeStyles((theme) => ({
   root: {
     position: "fixed",
@@ -50,6 +78,7 @@ const useStyles = makeStyles((theme) => ({
 
 const defaultConfig: Config = {
   range: [0, 20],
+  sequencingMode: SequencingMode.literalThenDigital,
 };
 
 function App() {
@@ -59,15 +88,61 @@ function App() {
   );
 
   const [started, setStarted] = useState<boolean>(false);
-  const [mode, setMode] = useState<0 | 1>(0);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [numbers, setNumbers] = useState<number[]>(
-    generateNumbers(config.range)
-  );
+  const [serie, setSerie] = useState<Serie>([]);
   const classes = useStyles();
 
   const start = (): void => {
-    setNumbers(generateNumbers(config.range));
+    switch (config.sequencingMode) {
+      case SequencingMode.literalOnly: {
+        setSerie(createSerie(config.range, true, Version.literal));
+        break;
+      }
+      case SequencingMode.literalThenDigital: {
+        const serieDigital = createSerie(config.range, true, Version.literal);
+        const serieLiteral = createSerie(config.range, true, Version.digital);
+        setSerie(serieDigital.concat(serieLiteral));
+        break;
+      }
+      case SequencingMode.digitalOnly: {
+        setSerie(createSerie(config.range, true, Version.digital));
+        break;
+      }
+      case SequencingMode.digitalThenLiteral: {
+        const serieDigital = createSerie(config.range, true, Version.digital);
+        const serieLiteral = createSerie(config.range, true, Version.literal);
+        setSerie(serieDigital.concat(serieLiteral));
+        break;
+      }
+      case SequencingMode.alternateDigitalAndLiteral:
+      case SequencingMode.alternateLiteralAndDigital: {
+        const serieDigital = createSerie(config.range, true, Version.digital);
+        const serieLiteral = createSerie(config.range, true, Version.literal);
+
+        setSerie(
+          serieDigital.reduce((acc: Serie, curr, index) => {
+            if (
+              config.sequencingMode ===
+              SequencingMode.alternateLiteralAndDigital
+            ) {
+              return acc.concat(serieLiteral[index], curr);
+            } else {
+              return acc.concat(curr, serieLiteral[index]);
+            }
+          }, [])
+        );
+        break;
+      }
+      case SequencingMode.alternateLiteralAndDigitalRandomly: {
+        const serieDigital = createSerie(config.range, true, Version.digital);
+        const serieLiteral = createSerie(config.range, true, Version.literal);
+
+        setSerie(shuffle(serieDigital.concat(serieLiteral)));
+        break;
+      }
+    }
+
+    setCurrentIndex(0);
     setStarted(true);
   };
 
@@ -76,54 +151,57 @@ function App() {
       return () => {};
     }
 
-    const increment = async (event: KeyboardEvent) => {
-      if (event.code !== "Space") {
+    const next = async () => {
+      if (currentIndex >= 0) {
+        await say(serie[currentIndex].number);
+      }
+
+      if (currentIndex < serie.length - 1) {
+        setCurrentIndex(currentIndex + 1);
         return;
       }
 
-      if (currentIndex >= 0) {
-        await say(numbers[currentIndex]);
-      }
+      setStarted(false);
+    };
 
-      if (currentIndex + 1 === numbers.length) {
-        setNumbers(generateNumbers(config.range));
-        setMode(mode === 1 ? 0 : 1);
-        setCurrentIndex(0);
-      } else {
-        setCurrentIndex(currentIndex + 1);
+    const handleKeydown = async (event: KeyboardEvent) => {
+      if (event.code === "Space") {
+        next();
       }
     };
 
-    window.addEventListener("keydown", increment);
+    window.addEventListener("keydown", handleKeydown);
 
     return () => {
-      window.removeEventListener("keydown", increment);
+      window.removeEventListener("keydown", handleKeydown);
     };
-  }, [config.range, currentIndex, mode, numbers, started]);
+  }, [currentIndex, serie, started]);
 
-  const text =
-    mode === 1
-      ? numbers[currentIndex]
-      : writtenNumber(numbers[currentIndex], { lang: "fr" });
+  const renderNumber = () => {
+    const { text }: SerieItem = serie[currentIndex];
+    const fontSize = Math.min(8, 120 / text.length);
 
-  const fontSize = Math.min(8, 120 / text.length);
+    return (
+      <span
+        className={classes.number}
+        style={{
+          fontSize: fontSize + "vw",
+        }}
+      >
+        {text}
+      </span>
+    );
+  };
 
   return (
     <div className={classes.root}>
       {started ? (
-        <span
-          className={classes.number}
-          style={{
-            fontSize: fontSize + "vw",
-          }}
-        >
-          {text}
-        </span>
+        renderNumber()
       ) : (
         <Settings
-          range={config.range}
-          onRangeChanged={(range) => {
-            setConfig({ ...config, range });
+          config={config}
+          onConfigChanged={(newConfig) => {
+            setConfig({ ...config, ...newConfig });
           }}
           onSubmited={start}
         />
