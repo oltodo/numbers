@@ -31,7 +31,7 @@ window.speechSynthesis.onvoiceschanged = () => {
 function say(text: number) {
   return new Promise((resolve) => {
     var msg = new SpeechSynthesisUtterance();
-    msg.text = text + "";
+    msg.text = `${text}`;
     msg.onend = resolve;
 
     if (voices) {
@@ -185,7 +185,7 @@ function App() {
       <span
         className={classes.number}
         style={{
-          fontSize: fontSize + "vw",
+          fontSize: `${fontSize}vw`,
         }}
       >
         {text}

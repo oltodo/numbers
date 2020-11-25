@@ -92,7 +92,9 @@ function Parameters({ config, onSubmited, onConfigChanged }: Props) {
             </div>
 
             <div className={classes.section}>
-              <div className={classes.sectionTitle}>Ordre d'apparition</div>
+              <div className={classes.sectionTitle}>
+                Ordre d&rsquo;apparition
+              </div>
               <RadioGroup
                 value={config.sequencingMode}
                 onChange={(event) => {

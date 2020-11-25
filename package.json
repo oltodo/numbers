@@ -49,7 +49,24 @@
     "plugins": [
       "json",
       "prettier"
-    ]
+    ],
+    "rules": {
+      "prettier/prettier": "error",
+      "prefer-template": "error",
+      "prefer-arrow-callback": [
+        "error",
+        {
+          "allowUnboundThis": false
+        }
+      ],
+      "react/self-closing-comp": [
+        "error",
+        {
+          "component": true,
+          "html": true
+        }
+      ]
+    }
   },
   "browserslist": {
     "production": [

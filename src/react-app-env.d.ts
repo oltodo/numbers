@@ -1,11 +1,11 @@
 /// <reference types="react-scripts" />
 
 module "written-number" {
-    interface Options {
-        lang: string
-    }
+  interface Options {
+    lang: string;
+  }
 
-    declare const writtenNumber = (number: number, options?: Options) => string
-    
-    export default writtenNumber
+  declare const writtenNumber = (number: number, options?: Options) => string;
+
+  export default writtenNumber;
 }
